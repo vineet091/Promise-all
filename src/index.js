@@ -63,34 +63,124 @@
 
 // Call array of promise synchronously
 
-function getPromise({ status, ans }) {
+// function getPromise({ status, ans }) {
+//   return new Promise((resolve, reject) => {
+//     if (status) {
+//       resolve(ans);
+//     } else {
+//       reject("Failed to fetch");
+//     }
+//   });
+// }
+
+// const promises = [
+//   { status: true, ans: 1 },
+//   { status: false, ans: 2 },
+//   { status: true, ans: 3 }
+// ];
+
+// async function executePromises() {
+//   var k = 0;
+//   var results = [];
+//   while (k < promises.length) {
+//     var res = await getPromise(promises[k])
+//       .then((res) => res)
+//       .catch((err) => err);
+//     console.log(res);
+//     results.push(res);
+//     k++;
+//   }
+//   console.log(results);
+//   return results;
+// }
+// executePromises();
+
+function getPromise(task) {
   return new Promise((resolve, reject) => {
-    if (status) {
-      resolve(ans);
-    } else {
-      reject("Failed to fetch");
-    }
+    setTimeout(resolve, 100, task);
   });
 }
 
-const promises = [
-  { status: true, ans: 1 },
-  { status: false, ans: 2 },
-  { status: true, ans: 3 }
+// Promise.myAll = function (promises) {
+//   return new Promise((resolve, reject) => {
+//     var count = promises.length;
+//     var results = [];
+//     var check = function () {
+//       --count;
+//       if (count === 0) {
+//         resolve(results);
+//       }
+//     };
+//     promises.map((promise, i) => {
+//       promise
+//         .then((result) => {
+//           results[i] = result;
+//         }, resolve)
+//         .then(check);
+//     });
+//   });
+// };
+// Promise.myAll(promises).then(
+//   (res) => {
+//     console.log(res);
+//   },
+//   (err) => {
+//     console.log(err.message);
+//   }
+// );
+
+var promises = [
+  { name: "D", job: getPromise("D"), dependent: ["A", "B"] },
+  { name: "E", job: getPromise("E"), dependent: ["C", "D"] },
+  { name: "A", job: getPromise("A"), dependent: [] },
+  { name: "B", job: getPromise("B"), dependent: [] },
+  { name: "C", job: getPromise("C"), dependent: [] }
 ];
 
-async function executePromises() {
-  var k = 0;
-  var results = [];
-  while (k < promises.length) {
-    var res = await getPromise(promises[k])
-      .then((res) => res)
-      .catch((err) => err);
-    console.log(res);
-    results.push(res);
-    k++;
-  }
-  console.log(results);
-  return results;
+async function executePromises(promises) {
+  var promise = new Promise((resolve, reject) => {
+    var count = promises.length;
+    var executedList = {};
+    var results = [];
+    var check = function () {
+      --count;
+      promises.map((prom) => {
+        if (!executedList[prom.name] && prom.dependent.length) {
+          var isExecute = true;
+          prom.dependent.map((dep) => {
+            if (results.indexOf(dep) === -1) {
+              isExecute = false;
+            }
+          });
+          if (isExecute) {
+            executedList[prom.name] = true;
+            prom.job
+              .then((res) => {
+                results.push(res);
+              })
+              .then(check);
+          }
+        }
+      });
+      if (count === 0) {
+        resolve(results);
+      }
+    };
+    promises.map((prom) => {
+      if (!prom.dependent.length) {
+        executedList[prom.name] = true;
+        prom.job
+          .then((res) => {
+            results.push(res);
+          })
+          .then(check);
+      }
+    });
+  });
+  var res = await promise.then((res) => {
+    return res;
+  });
+  console.log(res);
 }
-executePromises();
+
+executePromises(promises);
