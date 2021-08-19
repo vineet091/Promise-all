@@ -115,7 +115,7 @@ function getPromise(task) {
 //       promise
 //         .then((result) => {
 //           results[i] = result;
-//         }, resolve)
+//         }, reject)
 //         .then(check);
 //     });
 //   });
@@ -184,3 +184,36 @@ async function executePromises(promises) {
 }
 
 executePromises(promises);
+
+//Promise Pollyfill
+function myPromise(func) {
+  var resolve;
+  var reject;
+  function exec(val) {
+    resolve(val);
+  }
+
+  function exec2(val) {
+    reject(val);
+  }
+  this.then = function (callback) {
+    resolve = callback;
+    return this;
+  };
+
+  this.catch = function (callback) {
+    reject = callback;
+    return this;
+  };
+
+  func(exec, exec2);
+}
+new myPromise((resolve, reject) => {
+  setTimeout(() => {
+    reject(false);
+  }, 1000);
+})
+  .then((response) => {
+    console.log(response);
+  })
+  .catch((err) => console.log(err));
