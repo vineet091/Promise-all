@@ -29,7 +29,9 @@ Promise.all(
   console.log(responses);
 });
 
-// // Each Promise not handled error itself then Promise all will return failed promise result and stop exeuting further promises
+// Each Promise not handled error itself then Promise
+// all will return failed promise result and
+// stop exeuting further promises
 Promise.all(
   urls.map((url, index) => {
     if (index % 2 !== 0) {
@@ -50,7 +52,9 @@ Promise.all(
     console.log(err);
   });
 
-// // Each Promise handled error itself then Promise all will return array of promises result and we can filter out error by using filter Boolean.
+// Each Promise handled error itself then Promise all will return
+// array of promises result and we can filter
+// out error by using filter Boolean.
 Promise.all(
   urls.map((url) =>
     fetch(url)
@@ -189,11 +193,11 @@ executePromises(promises);
 function myPromise(func) {
   var onResolve;
   var onRreject;
-  function exec(val) {
+  function resolve(val) {
     onResolve(val);
   }
 
-  function exec2(val) {
+  function reject(val) {
     onRreject(val);
   }
   this.then = function (callback) {
@@ -206,7 +210,7 @@ function myPromise(func) {
     return this;
   };
 
-  func(exec, exec2);
+  func(resolve, reject);
 }
 new myPromise((resolve, reject) => {
   setTimeout(() => {
