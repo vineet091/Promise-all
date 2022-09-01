@@ -192,13 +192,13 @@ executePromises(promises);
 //Promise Pollyfill
 function myPromise(func) {
   var onResolve;
-  var onRreject;
+  var onReject;
   function resolve(val) {
     onResolve(val);
   }
 
   function reject(val) {
-    onRreject(val);
+    onReject(val);
   }
   this.then = function (callback) {
     onResolve = callback;
@@ -206,7 +206,7 @@ function myPromise(func) {
   };
 
   this.catch = function (callback) {
-    onRreject = callback;
+    onReject = callback;
     return this;
   };
 
@@ -228,11 +228,11 @@ function myPromiseAll(promises) {
     var result = [];
     promises.map((promise1) => {
       promise1
-        .then((payload) => {
+        .then((payload, i) => {
           result.push(payload);
           count--;
           if (count === 0) {
-            res(result);
+            res[i] = result;
           }
         })
         .catch((err) => {
