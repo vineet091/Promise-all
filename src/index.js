@@ -260,3 +260,119 @@ myPromiseAll([
   .catch((err) => {
     console.log(err);
   });
+
+/* 
+
+
+A --|
+    |-- D --|
+B --|       |-- E
+    |       |
+C --|-------|
+
+Each node is a async job, illustrated by setTimeout.
+A, B, and C can run at the same time.
+D, needs to wait for A and B to be done.
+E needs to wait for C and D to be done.
+Implement an interface, let's call it runTasks to take care of this for us.
+
+
+*/
+
+var inputArr = [
+  {
+    name: "A",
+    dependencies: []
+  },
+  {
+    name: "B",
+    dependencies: []
+  },
+  {
+    name: "C",
+    dependencies: []
+  },
+  {
+    name: "D",
+    dependencies: ["A", "B"]
+  },
+  {
+    name: "E",
+    dependencies: ["C", "D"]
+  }
+];
+
+function getPromise1(task) {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      if (task.name === "D") {
+        rej(task);
+      } else {
+        res(task);
+      }
+    }, 200);
+  });
+}
+
+function runTasks(promises) {
+  return new Promise((resolve, reject) => {
+    var result = [];
+    var count = promises.length;
+    var executedTasks = [];
+    const executeTasks = (promise) => {
+      // console.log(`${promise.name} starts here`);
+      getPromise1(promise)
+        .then((response) => {
+          // console.log(`${response.name} ends here`);
+          result.push(response.name);
+        })
+        .catch((err) => {
+          result.push(`Task ${err.name} is failed to execute`);
+          checkTasks();
+        })
+        .then(() => {
+          checkTasks();
+        });
+    };
+    const checkTasks = () => {
+      --count;
+      console.log(count, result);
+      if (count === 0) {
+        resolve(result);
+      } else {
+        promises.map((promise) => {
+          if (
+            promise.dependencies &&
+            executedTasks.indexOf(promise.name) === -1
+          ) {
+            var canExecute = true;
+            promise.dependencies.map((dep) => {
+              if (result.indexOf(dep) === -1) {
+                canExecute = false;
+              }
+            });
+            if (canExecute) {
+              executedTasks.push(promise.name);
+              executeTasks(promise);
+            }
+          }
+        });
+      }
+    };
+
+    promises.map((promise) => {
+      if (!promise.dependencies.length) {
+        executedTasks.push(promise.name);
+        executeTasks(promise);
+      }
+    });
+  });
+}
+
+runTasks(inputArr)
+  .then((result) => {
+    console.log(result);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
