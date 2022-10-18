@@ -232,7 +232,7 @@ function myPromiseAll(promises) {
           result.push(payload);
           count--;
           if (count === 0) {
-            res[i] = result;
+            res(result);
           }
         })
         .catch((err) => {
