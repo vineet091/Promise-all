@@ -209,8 +209,11 @@ function myPromise(func) {
     onReject = callback;
     return this;
   };
-
-  func(resolve, reject);
+  try {
+    func(resolve, reject);
+  } catch (err) {
+    reject(new Error("Unable to Fetch"));
+  }
 }
 new myPromise((resolve, reject) => {
   setTimeout(() => {
