@@ -62,7 +62,7 @@ Promise.all(
       .catch((e) => "")
   )
 ).then((responses) => {
-  console.log(responses.filter(Boolean));
+  console.log("Response with error filterred", responses.filter(Boolean));
 });
 
 // Call array of promise synchronously
