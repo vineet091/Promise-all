@@ -285,36 +285,39 @@ Implement an interface, let's call it runTasks to take care of this for us.
 var inputArr = [
   {
     name: "A",
-    dependencies: []
+    dependencies: [],
+    prom: getPromise1("A")
   },
   {
     name: "B",
-    dependencies: []
+    dependencies: [],
+    prom: getPromise1("B")
   },
   {
     name: "C",
-    dependencies: []
+    dependencies: [],
+    prom: getPromise1("C")
   },
   {
     name: "D",
-    dependencies: ["A", "B"]
+    dependencies: ["A", "B"],
+    prom: getPromise1("D")
   },
   {
     name: "E",
-    dependencies: ["C", "D"]
+    dependencies: ["C", "D"],
+    prom: getPromise1("E")
   }
 ];
 
 function getPromise1(task) {
-  return new Promise((res, rej) => {
-    setTimeout(() => {
-      if (task.name === "D") {
-        rej(task);
-      } else {
+  return () => {
+    return new Promise((res, rej) => {
+      setTimeout(() => {
         res(task);
-      }
-    }, 200);
-  });
+      }, 1000);
+    });
+  };
 }
 
 function runTasks(promises) {
@@ -322,16 +325,16 @@ function runTasks(promises) {
     var result = [];
     var count = promises.length;
     var executedTasks = [];
-    const executeTasks = (promise) => {
+    const executeTasks = (prom2) => {
       // console.log(`${promise.name} starts here`);
-      getPromise1(promise)
+      prom2
+        .prom()
         .then((response) => {
           // console.log(`${response.name} ends here`);
-          result.push(response.name);
+          result.push(response);
         })
         .catch((err) => {
-          result.push(`Task ${err.name} is failed to execute`);
-          checkTasks();
+          reject(`Task ${err.name} is failed to execute`);
         })
         .then(() => {
           checkTasks();
@@ -363,10 +366,11 @@ function runTasks(promises) {
       }
     };
 
-    promises.map((promise) => {
-      if (!promise.dependencies.length) {
-        executedTasks.push(promise.name);
-        executeTasks(promise);
+    promises.map((prom1) => {
+      if (!prom1.dependencies.length) {
+        console.log(prom1);
+        executedTasks.push(prom1.name);
+        executeTasks(prom1);
       }
     });
   });
@@ -374,8 +378,8 @@ function runTasks(promises) {
 
 runTasks(inputArr)
   .then((result) => {
-    console.log(result);
+    console.log("task result", result);
   })
   .catch((err) => {
-    console.log(err);
+    console.log("task err", err);
   });
