@@ -100,9 +100,11 @@ Promise.all(
 // executePromises();
 
 function getPromise(task) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, 100, task);
-  });
+  return () => {
+    new Promise((resolve, reject) => {
+      setTimeout(resolve, 100, task);
+    });
+  };
 }
 
 // Promise.myAll = function (promises) {
