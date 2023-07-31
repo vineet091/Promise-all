@@ -160,7 +160,8 @@ async function executePromises(promises) {
           });
           if (isExecute) {
             executedList[prom.name] = true;
-            prom.job
+            prom
+              .job()
               .then((res) => {
                 results.push(res);
               })
@@ -175,7 +176,8 @@ async function executePromises(promises) {
     promises.map((prom) => {
       if (!prom.dependent.length) {
         executedList[prom.name] = true;
-        prom.job
+        prom
+          .job()
           .then((res) => {
             results.push(res);
           })
