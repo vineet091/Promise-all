@@ -198,11 +198,18 @@ function myPromise(func) {
   var onResolve;
   var onReject;
   function resolve(val) {
-    onResolve(val);
+    if(typeof onResolve === 'function') {
+      onResolve(val);
+    }
   }
 
   function reject(val) {
-    onReject(val);
+    if(typeof onReject === 'function') {
+         onReject(val);
+    } else {
+      throw new Error(val)
+    }
+ 
   }
   this.then = function (callback) {
     onResolve = callback;
