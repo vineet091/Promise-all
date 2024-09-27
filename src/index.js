@@ -195,37 +195,94 @@ executePromises(promises);
 
 //Promise Pollyfill
 function myPromise(func) {
-  var onResolve;
-  var onReject;
-  function resolve(val) {
-    if(typeof onResolve === 'function') {
-      onResolve(val);
-    }
-  }
+  var callbackList = [];
+  this.promiseStatus = "pending";
 
-  function reject(val) {
-    if(typeof onReject === 'function') {
-         onReject(val);
-    } else {
-      throw new Error(val)
+  var executeCallback = (acc = "", isError = false) => {
+    callbackList.map((event) => {
+      if (
+        (!isError && (event.type === "then" || event.type === "finally")) ||
+        (isError && event.type === "catch")
+      ) {
+        try {
+          if (event.type === "finally") {
+            event.callback(acc);
+          } else {
+            acc = event.callback(acc);
+            if (event.type === "catch" && isError) {
+              isError = false;
+            }
+          }
+        } catch (err) {
+          isError = true;
+        }
+      }
+    });
+  };
+  const resolve = (val) => {
+    this.promiseStatus = "fullfilled";
+    if (callbackList.length) {
+      executeCallback(val);
     }
- 
-  }
-  this.then = function (callback) {
-    onResolve = callback;
+  };
+  const reject = (val) => {
+    this.promiseStatus = "rejected";
+    if (callbackList.length) {
+      executeCallback(val, true);
+    }
+  };
+
+  this.__proto__.then = (callback) => {
+    callbackList.push({
+      type: "then",
+      callback,
+    });
     return this;
   };
 
-  this.catch = function (callback) {
-    onReject = callback;
+  this.__proto__.catch = (callback) => {
+    callbackList.push({
+      type: "catch",
+      callback,
+    });
     return this;
   };
+  this.__proto__.finally = (callback) => {
+    callbackList.push({
+      type: "finally",
+      callback,
+    });
+    return this;
+  };
+
   try {
     func(resolve, reject);
   } catch (err) {
-    reject(new Error("Unable to Fetch"));
+    reject(err);
   }
+  return this;
 }
+
+var p1 = new myPromise((resolve, reject) =>
+  setTimeout(() => resolve(1000), 1000)
+);
+console.log(p1);
+
+p1.then((val) => {
+  console.log("test", val);
+  throw "error";
+})
+  .then((val) => {
+    console.log("2nd", val);
+  })
+  .catch((err) => {
+    console.log("catch", err);
+    return 3000;
+  })
+  .then((val) => {
+    console.log("3rd", val);
+  });
+
 new myPromise((resolve, reject) => {
   setTimeout(() => {
     reject(false);
